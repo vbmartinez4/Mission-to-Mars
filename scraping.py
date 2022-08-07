@@ -20,6 +20,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres": hemisphere(browser),
         "last_modified": dt.datetime.now()
     }
 
@@ -103,6 +104,57 @@ def mars_facts():
 
     # Conver the DataFrame into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+
+# # D1: Scrape High-Resolution Mars’ Hemisphere Images and Titles
+
+# ### Hemispheres
+def hemisphere(browser):
+
+    # 1. Use browser to visit the URL 
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    # Parse the html with BeautifulSoup
+    html = browser.html
+    hemisphere_soup = soup(html, 'html.parser')
+    #hemisphere_soup
+
+    # Obtain all items for hemisphere information.
+    hemisphere_info = hemisphere_soup.find_all('div', class_='item')
+
+    # 2. Create a list to hold the images and titles.
+    hemisphere_image_urls = []
+
+    # Create loop to scrape through all hemisphere information
+    for x in hemisphere_info:
+        hemisphere = {}
+    
+        # Find the image title
+        img_titles = x.find('h3').text
+    
+        # create link for full image
+        link_ref = x.find('a', class_='itemLink product-item')['href']
+        # Use the base URL to create an absolute URL and browser visit
+        browser.visit(url + link_ref)
+    
+        # Find the image url
+        img_html = browser.html
+        hemis_soup = soup(img_html, 'html.parser')
+        download = hemis_soup.find('div', class_= 'downloads')
+        img_url = download.find('a')['href']
+    
+        # Add the img_url and title keys to the dictionary
+        hemisphere['img_url'] = url + img_url
+        hemisphere['title'] = img_titles
+        hemisphere_image_urls.append(hemisphere)
+    
+        #Navigate back to the beginning to obtain next hemisphere image
+        browser.back()
+
+    # 4. Print the list that holds the dictionary of each image url and title.
+    return hemisphere_image_urls
+
 
 if __name__ == "__main__":
 
